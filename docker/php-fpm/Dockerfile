@@ -6,7 +6,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 RUN apt update
-RUN apt-get install -y zlib1g-dev libzip-dev libpng-dev libwebp-dev libjpeg62-turbo-dev zip unzip bash ffmpeg cron procps
+RUN apt-get install -y zlib1g-dev libzip-dev libpng-dev libwebp-dev libjpeg62-turbo-dev zip unzip bash ffmpeg cron procps supervisor
+
+COPY ./supervisor/supervisord.conf /etc/supervisord.conf
 
 RUN ln -sf /bin/bash /bin/sh
 
@@ -34,3 +36,5 @@ RUN if [ "$PHP_XDEBUG" = "1" ]; then \
           && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/xdebug.ini \
           && echo "xdebug.log_level=0" >> /usr/local/etc/php/conf.d/xdebug.ini; \
     fi
+
+WORKDIR /vesp/core

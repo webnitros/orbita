@@ -53,8 +53,36 @@ services:
       - COMPOSER_ALLOW_SUPERUSER=1
       - PHP_IDE_CONFIG=serverName=VespDocker
     restart: unless-stopped
-    working_dir: /vesp/core
-    command: sh -c 'composer install --no-dev && composer db:migrate && cron && php-fpm'
+    command: sh -c 'composer install --no-dev && composer db:migrate && php-fpm'
+
+  supervisor:
+    build:
+      context: ./docker/php-fpm
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+        - PHP_XDEBUG=${PHP_XDEBUG:-0}
+        - TZ=${TZ}
+    volumes:
+      - ./.env:/vesp/.env
+      - ./core:/vesp/core
+      - ./www:/vesp/www
+      - ./upload:/vesp/upload
+      - ./tmp:/vesp/tmp
+      - ./log:/vesp/log
+      - ./frontend:/vesp/frontend
+      - ./docker/php-fpm/supervisor/supervisord.conf:/etc/supervisord.conf
+    cap_add:
+      - SYS_PTRACE
+    depends_on:
+      - mariadb
+    environment:
+      - TZ=${TZ}
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - PHP_IDE_CONFIG=serverName=VespDocker
+    restart: unless-stopped
+    user: "root"
+    command: [ "supervisord" ]
+
 
   node:
     image: node:${NODE_VERSION}
